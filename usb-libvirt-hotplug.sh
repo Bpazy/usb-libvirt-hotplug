@@ -71,38 +71,27 @@ else
   exit 1
 fi
 
-if [ -z "${BUSNUM}" ]; then
-  echo "Missing udev BUSNUM environment variable." >&2
+if [ -z "${VERDOR_ID}" ]; then
+  echo "Missing udev VERDOR_ID environment variable." >&2
   exit 1
 fi
-if [ -z "${DEVNUM}" ]; then
-  echo "Missing udev DEVNUM environment variable." >&2
+if [ -z "${PRORUCT_ID}" ]; then
+  echo "Missing udev PRORUCT_ID environment variable." >&2
   exit 1
 fi
 
-
-#
-# This is a bit ugly. udev passes us the USB bus number and
-# device number with leading zeroes. E.g.:
-#   BUSNUM=001 DEVNUM=022
-# This causes libvirt to assume that the numbers are octal.
-# To work around this, we need to strip the leading zeroes.
-# The easiest way is to ask bash to convert the numbers from
-# base 10:
-#
-BUSNUM=$((10#$BUSNUM))
-DEVNUM=$((10#$DEVNUM))
 
 #
 # Now we have all the information we need to update the VM.
 # Run the appropriate virsh-command, and ask it to read the
 # update XML from stdin.
 #
-echo "Running virsh ${COMMAND} ${DOMAIN} for USB bus=${BUSNUM} device=${DEVNUM}:" >&2
+echo "Running virsh ${COMMAND} ${DOMAIN} for USB vendor_id=${VERDOR_ID} product_id=${PRORUCT_ID}:" >&2
 virsh "${COMMAND}" "${DOMAIN}" /dev/stdin <<END
 <hostdev mode='subsystem' type='usb'>
-  <source>
-    <address bus='${BUSNUM}' device='${DEVNUM}' />
-  </source>
+    <source>
+        <vendor id='0x03f0'/>
+        <product id='0x2b17'/>
+    </source>
 </hostdev>
 END

@@ -43,7 +43,7 @@ If you want to match a specific USB port, you will probably want to use the `DEV
 To match a specific device instead, use the `ID_VENDOR_ID` and `ID_MODEL_ID` attributes.
 
 *Note*:
-It may be tempting to use `ATTR{busnum}` and `ATTR{devpath}` to match the USB bus and port number.
+It may be tempting to use `ATTR{verdor_id}` and `ATTR{product_id}` to match the USB verdor_id and port number.
 However, those attributes are only available when the device is added, and not when the device is removed.
 This leads to the device not being properly removed from the VM.
 
@@ -71,7 +71,7 @@ On Debian it defaults to showing up in `/var/log/syslog`.
 ### Running the script manully
 
 If you want to run the script manually (e.g. for debugging), you need to pass the same environment variables as udev.
-First you need to determine the BUSNUM and DEVNUM of your device.
+First you need to determine the VENDOR_ID and PRODUCT_ID of your device.
 This can be found by using `lsusb`:
 
 ```
@@ -80,17 +80,17 @@ Bus 001 Device 037: ID 152d:2338 JMicron Technology Corp. / JMicron USA Technolo
 [...]
 ```
 
-Here we see that the bus number is `001` and the device number is `037`.
+Here we see that the verdor number is `0x152d` and the product number is `0x2338`.
 We can then simulate a device insertion by running:
 
 ```
-$ ACTION=add SUBSYSTEM=usb DEVTYPE=usb_device BUSNUM=001 DEVNUM=037 /opt/usb-libvirt-hotplug/usb-libvirt-hotplug.sh testvm-01
+$ ACTION=add SUBSYSTEM=usb DEVTYPE=usb_device VERDOR_ID=001 PRORUCT_ID=037 /opt/usb-libvirt-hotplug/usb-libvirt-hotplug.sh testvm-01
 ```
 
 A device removal can be simulated by changing `ACTION` to `remove`:
 
 ```
-$ ACTION=remove SUBSYSTEM=usb DEVTYPE=usb_device BUSNUM=001 DEVNUM=037 /opt/usb-libvirt-hotplug/usb-libvirt-hotplug.sh testvm-01
+$ ACTION=remove SUBSYSTEM=usb DEVTYPE=usb_device VERDOR_ID=001 PRORUCT_ID=037 /opt/usb-libvirt-hotplug/usb-libvirt-hotplug.sh testvm-01
 ```
 
 
@@ -132,33 +132,13 @@ The output will contain something like:
   <!-- ... -->
   <devices>
     <!-- ... -->
-    <video>
-      <model type='cirrus' vram='9216' heads='1'/>
-      <alias name='video0'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
-    </video>
     <hostdev mode='subsystem' type='usb' managed='no'>
       <source>
-        <address bus='1' device='33'/>
+        <vendor id='0x03f0'/>
+        <product id='0x2b17'/>
       </source>
       <alias name='hostdev0'/>
     </hostdev>
-    <hostdev mode='subsystem' type='usb' managed='no'>
-      <source>
-        <address bus='1' device='34'/>
-      </source>
-      <alias name='hostdev1'/>
-    </hostdev>
-    <hostdev mode='subsystem' type='usb' managed='no'>
-      <source>
-        <address bus='1' device='35'/>
-      </source>
-      <alias name='hostdev2'/>
-    </hostdev>
-    <memballoon model='virtio'>
-      <alias name='balloon0'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
-    </memballoon>
   </devices>
 </domain>
 ```
@@ -170,7 +150,8 @@ To remove them run `virsh detach-device testvm-01 /dev/stdin`, and paste `<hostd
 $ virsh detach-device testvm-01 /dev/stdin
     <hostdev mode='subsystem' type='usb' managed='no'>
       <source>
-        <address bus='1' device='35'/>
+          <vendor id='0x03f0'/>
+          <product id='0x2b17'/>
       </source>
       <alias name='hostdev2'/>
     </hostdev>
